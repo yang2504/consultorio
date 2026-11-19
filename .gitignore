@@ -1,0 +1,10 @@
+node_modules/
+frontend/dist/
+Consultorio-Windows-*.zip
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+.env
+.env.*
+!.env.example
