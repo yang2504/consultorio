@@ -17,7 +17,8 @@ const dbPath = demo ? ':memory:' : resolve(process.env.CONSULTORIO_DB ??
 const store = openStore(dbPath);
 const demoUser = demo ? seedDemo(store) : null;
 const clinic = createClinic(store);
-const setupCode = randomBytes(8).toString('hex');
+const setupCode = process.argv.includes('--desktop') && /^[a-f0-9]{32}$/.test(process.env.CONSULTORIO_SETUP_CODE ?? '')
+  ? process.env.CONSULTORIO_SETUP_CODE : randomBytes(8).toString('hex');
 const publicPath = fileURLToPath(new URL('../../frontend/dist', import.meta.url));
 const app = createHttp(clinic, { publicPath, setupCode, demoUser, port });
 const url = 'http://127.0.0.1:' + port;
@@ -35,4 +36,8 @@ server.on('error', error => {
   console.error(error.code === 'EADDRINUSE' ? 'El puerto está ocupado. Cierra la instancia anterior o usa otro puerto.' : error.message);
   process.exitCode = 1;
   store.close();
+});
+for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
+  server.close(() => { store.close(); process.exit(0); });
+  server.closeIdleConnections();
 });

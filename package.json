@@ -1,6 +1,6 @@
 {
   "name": "consultorio-local",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "type": "module",
   "engines": {
@@ -13,7 +13,8 @@
     "start": "node backend/src/server.js --open",
     "test": "node --test",
     "package:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-windows.ps1",
-    "package:macos": "python scripts/package-macos.py"
+    "package:macos": "python scripts/package-macos.py",
+    "package:macos:app": "python3 scripts/package-macos.py --app"
   },
   "dependencies": {
     "express": "^5.1.0"

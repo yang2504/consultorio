@@ -9,3 +9,4 @@ Consultorio-macOS-*.zip
 .env
 .env.*
 !.env.example
+__pycache__/

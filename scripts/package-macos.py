@@ -2,11 +2,13 @@
 import hashlib
 import json
 import os
+import plistlib
 from pathlib import Path
 import shutil
 import stat
 import struct
 import subprocess
+import sys
 import tarfile
 import tempfile
 import urllib.request
@@ -17,9 +19,12 @@ ROOT = Path(__file__).resolve().parent.parent
 NODE_VERSION = 'v22.23.5'
 
 
-def package():
+def package(app_bundle=False):
     version = json.loads((ROOT / 'package.json').read_text(encoding='utf-8'))['version']
-    output = ROOT / f'Consultorio-macOS-arm64-v{version}.zip'
+    if app_bundle and sys.platform != 'darwin':
+        raise RuntimeError('La aplicación nativa se compila en macOS; usa el workflow macOS App de GitHub Actions.')
+    variant = '-App' if app_bundle else ''
+    output = ROOT / f'Consultorio-macOS-arm64{variant}-v{version}.zip'
     if output.exists():
         raise FileExistsError(f'El ZIP ya existe: {output}')
     npm = shutil.which('npm.cmd' if os.name == 'nt' else 'npm')
@@ -28,13 +33,15 @@ def package():
     subprocess.run([npm, 'run', 'build'], cwd=ROOT, check=True)
     with tempfile.TemporaryDirectory(prefix='consultorio-macos-') as temporary:
         work = Path(temporary)
-        stage = work / 'Consultorio'
-        stage.mkdir()
+        container = work / 'Consultorio'
+        bundle = container / 'Consultorio.app'
+        stage = bundle / 'Contents/Resources/app' if app_bundle else container
+        stage.mkdir(parents=True)
         for name in ('package.json', 'package-lock.json', 'README.md'):
             shutil.copy2(ROOT / name, stage / name)
         shutil.copytree(ROOT / 'backend/src', stage / 'backend/src')
         shutil.copytree(ROOT / 'frontend/dist', stage / 'frontend/dist')
-        for name in ('Iniciar-Consultorio.command', 'LEEME-Mac.txt'):
+        for name in (() if app_bundle else ('Iniciar-Consultorio.command', 'LEEME-Mac.txt')):
             text = (ROOT / 'scripts' / name).read_text(encoding='utf-8')
             (stage / name).write_bytes(text.replace('\r\n', '\n').encode('utf-8'))
         subprocess.run([npm, 'ci', '--omit=dev', '--no-audit', '--no-fund', '--ignore-scripts'], cwd=stage, check=True)
@@ -79,8 +86,34 @@ def package():
         if minimum is None or minimum > (12 << 16 | 4 << 8):
             raise RuntimeError('El runtime no declara compatibilidad con macOS 12.4.')
         executable_paths = {'Consultorio/runtime/node', 'Consultorio/Iniciar-Consultorio.command'}
-        with zipfile.ZipFile(output, 'x', compression=zipfile.ZIP_DEFLATED, compresslevel=6) as target:
-            for path in sorted(stage.rglob('*')):
+        if app_bundle:
+            executable = bundle / 'Contents/MacOS/Consultorio'
+            executable.parent.mkdir()
+            subprocess.run(['xcrun', 'swiftc', '-swift-version', '5', '-O', '-target', 'arm64-apple-macos12.0',
+                            str(ROOT / 'scripts/macos/Consultorio.swift'), '-o', str(executable)], check=True)
+            iconset = work / 'Consultorio.iconset'
+            subprocess.run(['xcrun', 'swift', str(ROOT / 'scripts/macos/Icon.swift'), str(iconset)], check=True)
+            subprocess.run(['iconutil', '-c', 'icns', str(iconset), '-o', str(bundle / 'Contents/Resources/Consultorio.icns')], check=True)
+            metadata = {
+                'CFBundleExecutable': 'Consultorio', 'CFBundleName': 'Consultorio',
+                'CFBundleDisplayName': 'Consultorio', 'CFBundleIdentifier': 'bo.consultorio.local',
+                'CFBundlePackageType': 'APPL', 'CFBundleShortVersionString': version,
+                'CFBundleVersion': version, 'CFBundleIconFile': 'Consultorio.icns',
+                'LSMinimumSystemVersion': '12.4', 'NSHighResolutionCapable': True,
+                'NSAppTransportSecurity': {'NSAllowsLocalNetworking': True},
+            }
+            (bundle / 'Contents/Info.plist').write_bytes(plistlib.dumps(metadata))
+            (bundle / 'Contents/PkgInfo').write_bytes(b'APPL????')
+            (container / 'LEEME-App.txt').write_bytes((ROOT / 'scripts/macos/LEEME-App.txt').read_bytes())
+            executable_paths = {str(executable.relative_to(work).as_posix()), str((runtime / 'node').relative_to(work).as_posix())}
+            for name in executable_paths:
+                (work / name).chmod(0o755)
+            subprocess.run(['codesign', '--force', '--sign', '-', str(bundle)], check=True)
+            subprocess.run(['codesign', '--verify', '--deep', '--strict', str(bundle)], check=True)
+            subprocess.run([str(executable), '--version'], check=True)
+        pending = work / output.name
+        with zipfile.ZipFile(pending, 'x', compression=zipfile.ZIP_DEFLATED, compresslevel=6) as target:
+            for path in sorted(container.rglob('*')):
                 if not path.is_file():
                     continue
                 name = path.relative_to(work).as_posix()
@@ -91,15 +124,16 @@ def package():
                 entry.external_attr = (stat.S_IFREG | (0o755 if name in executable_paths else 0o644)) << 16
                 entry.compress_type = zipfile.ZIP_DEFLATED
                 target.writestr(entry, path.read_bytes())
-        with zipfile.ZipFile(output) as result:
+        with zipfile.ZipFile(pending) as result:
             if result.testzip() is not None:
                 raise RuntimeError('El ZIP está dañado.')
             for name in executable_paths:
                 if not (result.getinfo(name).external_attr >> 16) & stat.S_IXUSR:
                     raise RuntimeError(f'Falta permiso de ejecución: {name}')
+        shutil.move(str(pending), output)
         print(f'Runtime verificado: ARM64, macOS mínimo {minimum >> 16}.{(minimum >> 8) & 255}')
         print(f'ZIP listo: {output} ({output.stat().st_size / 1024 / 1024:.1f} MB)')
 
 
 if __name__ == '__main__':
-    package()
+    package(app_bundle='--app' in sys.argv[1:])

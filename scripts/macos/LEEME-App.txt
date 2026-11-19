@@ -1,0 +1,28 @@
+CONSULTORIO PARA MAC M1 — APLICACIÓN
+
+1. Cierra la versión anterior: pulsa Control+C en su ventana de Terminal.
+2. Extrae todo el ZIP y abre Consultorio.app con doble clic.
+   Puedes mover Consultorio.app a Aplicaciones o Documentos y añadirla al Dock.
+3. El sistema se abre en el navegador. No necesitas mantener Terminal abierto.
+4. Si ya creaste tu cuenta en esta Mac, inicia sesión con esas credenciales.
+   Si es la primera vez, una ventana muestra y copia el código de configuración.
+   Pégalo en el formulario y crea tu cuenta con una contraseña de 8 caracteres
+   como mínimo.
+5. Para detener el servicio, elige Consultorio > Salir de Consultorio, o pulsa
+   Comando+Q cuando Consultorio sea la aplicación activa.
+
+Cerrar Safari no detiene el servicio. Puedes volver al sistema haciendo clic
+en el icono de Consultorio del Dock.
+
+La aplicación no incluye usuarios ni pacientes. Conserva los registros que
+hayas creado en esta Mac, en la misma base de datos de la versión anterior:
+~/Library/Application Support/ConsultorioLocal/consultorio.sqlite
+
+No requiere instalar Node.js, Python ni otras herramientas, ni conexión a
+Internet durante el uso.
+
+Esta aplicación no está firmada con un certificado Developer ID ni notarizada
+por Apple. macOS puede pedir autorización para abrirla por primera vez.
+Si macOS bloquea la apertura, revisa el mensaje antes de continuar y consulta:
+https://support.apple.com/es-es/102445
+No desactives las protecciones generales de macOS.

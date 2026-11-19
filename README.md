@@ -19,6 +19,12 @@ Extrae todo el ZIP, mueve la carpeta **Consultorio** a Documentos y abre **Inici
 
 El paquete no lleva base de datos, usuarios ni pacientes. La base vacía se crea al iniciar en `~/Library/Application Support/ConsultorioLocal/consultorio.sqlite` y conserva los registros posteriores. Las instrucciones completas están en **LEEME-Mac.txt**. Para generar este ZIP desde la máquina de desarrollo, ejecuta `npm run package:macos` (requiere Python 3 y Node.js en esa máquina). El script verifica el SHA-256 oficial, la arquitectura, la versión mínima de macOS del runtime, los permisos de ejecución y la integridad del ZIP. La ejecución nativa debe comprobarse en la Mac de destino.
 
+## Aplicación nativa para Mac
+
+El paquete `Consultorio-macOS-arm64-App-v0.3.1.zip` contiene **Consultorio.app**, con icono y menú propio. Abre el navegador, inicia el servidor sin Terminal y lo detiene desde **Consultorio → Salir de Consultorio**. La primera configuración muestra un código en una ventana nativa y lo copia al portapapeles. Usa la misma base de datos que la versión `.command`. Antes de cambiar, detén la instancia antigua con Control+C.
+
+La app se compila en macOS con `npm run package:macos:app` o mediante el workflow manual **macOS App** de GitHub Actions. Requiere Xcode Command Line Tools solo en la máquina que compila; la Mac de destino no necesita herramientas adicionales. El bundle usa una firma ad-hoc para mantener su integridad; no tiene certificado Developer ID ni notarización de Apple. El workflow verifica la firma después de extraer el ZIP, ejecuta el binario nativo y prueba el runtime ARM64 con base vacía, configuración de la cuenta y apagado limpio. La apertura gráfica y los avisos de Gatekeeper deben comprobarse en la Mac de destino.
+
 ## Stack y arquitectura
 
 - **React + Vite** para la interfaz en español. Los componentes de calendario, navegación, formularios y páginas se comunican con el backend por una API JSON.
