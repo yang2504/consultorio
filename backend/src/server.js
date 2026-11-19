@@ -11,8 +11,9 @@ import { createClinic } from './application/clinic.js';
 const demo = process.argv.includes('--demo');
 const port = Number(process.env.CONSULTORIO_PORT ?? 4317);
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('Puerto local inválido.');
+const dataRoot = process.platform === 'darwin' ? join(homedir(), 'Library', 'Application Support') : (process.env.LOCALAPPDATA ?? homedir());
 const dbPath = demo ? ':memory:' : resolve(process.env.CONSULTORIO_DB ??
-  join(process.env.LOCALAPPDATA ?? homedir(), 'ConsultorioLocal', 'consultorio.sqlite'));
+  join(dataRoot, 'ConsultorioLocal', 'consultorio.sqlite'));
 const store = openStore(dbPath);
 const demoUser = demo ? seedDemo(store) : null;
 const clinic = createClinic(store);
@@ -24,8 +25,8 @@ const server = app.listen(port, '127.0.0.1', () => {
   console.log('Consultorio disponible en ' + url);
   if (demo) console.log('Modo demostración. Los cambios se pierden al cerrar.');
   if (clinic.needsSetup()) console.log('Código para crear la cuenta inicial: ' + setupCode);
-  if (process.argv.includes('--open') && process.platform === 'win32') {
-    const browser = spawn('explorer.exe', [url], { stdio: 'ignore', windowsHide: true, detached: true });
+  if (process.argv.includes('--open') && ['win32', 'darwin'].includes(process.platform)) {
+    const browser = spawn(process.platform === 'darwin' ? '/usr/bin/open' : 'explorer.exe', [url], { stdio: 'ignore', windowsHide: true, detached: true });
     browser.on('error', () => console.log('Abre manualmente ' + url));
     browser.unref();
   }

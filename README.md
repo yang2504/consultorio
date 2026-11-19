@@ -11,6 +11,14 @@ Sistema local para un consultorio con un médico. La agenda distingue primera co
 
 El ZIP incluye Node.js, dependencias de ejecución y la interfaz compilada. El navegador se conecta solo a la máquina local. Puedes descargar una copia desde **Configuración**. Para restaurarla, cierra el servidor, conserva aparte la carpeta de datos anterior completa y coloca el archivo descargado como `consultorio.sqlite` en una carpeta de datos vacía antes de volver a iniciar. Conserva las copias en almacenamiento protegido.
 
+## Ejecutar en Mac Apple Silicon
+
+El ZIP `Consultorio-macOS-arm64-v0.3.0.zip` incluye Node.js 22 para Apple Silicon, dependencias y la interfaz compilada para Safari 15.4 o posterior. Está preparado para MacBook Air M1 con macOS Monterey 12.4, sin instalar herramientas adicionales.
+
+Extrae todo el ZIP, mueve la carpeta **Consultorio** a Documentos y abre **Iniciar-Consultorio.command**. Mantén la ventana de Terminal abierta. La primera vez, copia el código que muestra Terminal y crea la cuenta administradora con una contraseña de al menos ocho caracteres. El navegador predeterminado se abre en `http://127.0.0.1:4317`. Detén el servidor con **Control+C**.
+
+El paquete no lleva base de datos, usuarios ni pacientes. La base vacía se crea al iniciar en `~/Library/Application Support/ConsultorioLocal/consultorio.sqlite` y conserva los registros posteriores. Las instrucciones completas están en **LEEME-Mac.txt**. Para generar este ZIP desde la máquina de desarrollo, ejecuta `npm run package:macos` (requiere Python 3 y Node.js en esa máquina). El script verifica el SHA-256 oficial, la arquitectura, la versión mínima de macOS del runtime, los permisos de ejecución y la integridad del ZIP. La ejecución nativa debe comprobarse en la Mac de destino.
+
 ## Stack y arquitectura
 
 - **React + Vite** para la interfaz en español. Los componentes de calendario, navegación, formularios y páginas se comunican con el backend por una API JSON.

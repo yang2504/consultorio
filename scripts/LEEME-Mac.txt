@@ -1,0 +1,30 @@
+CONSULTORIO MÉDICO — MAC APPLE SILICON
+
+Para MacBook Air M1 (2020) con macOS Monterey 12.4.
+No necesitas instalar Node.js, npm, Python ni una base de datos.
+El paquete incluye el motor de ejecución y funciona sin conexión a Internet.
+
+1. Copia el ZIP a la Mac y haz doble clic para extraerlo.
+2. Mueve la carpeta Consultorio a Documentos (no ejecutes desde el ZIP).
+3. Abre Iniciar-Consultorio.command con doble clic.
+4. Se abre Terminal y el navegador predeterminado. Si no se abre el navegador,
+   entra en http://127.0.0.1:4317 desde Safari.
+5. La primera vez, copia el código de configuración que aparece en Terminal.
+   Úsalo en el formulario para crear tu cuenta administradora, con una
+   contraseña de al menos 8 caracteres. No hay una cuenta preconfigurada.
+6. Mantén Terminal abierto durante el uso. Para detener el servicio,
+   pulsa Control+C en esa ventana.
+
+Si macOS pide confirmar la apertura, revisa el aviso antes de continuar.
+Si indica que no tienes permisos para ejecutar el archivo, abre Terminal,
+escribe «bash » (sin comillas, con un espacio al final), arrastra
+Iniciar-Consultorio.command a Terminal y pulsa Enter.
+
+El ZIP no contiene usuarios, pacientes ni datos de Windows. Al primer inicio
+se crea una base vacía en la Mac. Los datos que registres luego se conservan en:
+~/Library/Application Support/ConsultorioLocal/consultorio.sqlite
+
+Las credenciales de Windows no sirven para esta instalación nueva.
+Puedes descargar copias de respaldo desde Configuración.
+La aplicación escucha únicamente en esta Mac, en el puerto 4317.
+Si aparece «El puerto está ocupado», cierra la instancia anterior.

@@ -1,6 +1,7 @@
 node_modules/
 frontend/dist/
 Consultorio-Windows-*.zip
+Consultorio-macOS-*.zip
 *.sqlite
 *.sqlite-*
 *.db
